@@ -11,11 +11,13 @@ import java.util.List;
 @AllArgsConstructor
 @Data
 @Validated
-public class PrediccionTiempoDto {
-
-    private double mediaTemperatura;
-
-    private String unidadTemperatura;
-
+public class DiaDto {
     private List<ProbPrecipitacionDto> probPrecipitacion;
+    private List<EstadoCieloDto> estadoCielo;
+    private List<VientoDto> viento;
+    private TemperaturaDto temperatura;
+    private SensTermicaDto sensTermica;
+    private HumedadRelativaDto humedadRelativa;
+    private int uvMax;
+    private String fecha;
 }

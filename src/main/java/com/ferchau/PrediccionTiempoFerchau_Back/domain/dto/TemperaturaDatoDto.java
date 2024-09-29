@@ -5,17 +5,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 
-import java.util.List;
-
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
 @Validated
-public class PrediccionTiempoDto {
-
-    private double mediaTemperatura;
-
-    private String unidadTemperatura;
-
-    private List<ProbPrecipitacionDto> probPrecipitacion;
+public class TemperaturaDatoDto {
+    private int value;
+    private int hora;
 }
