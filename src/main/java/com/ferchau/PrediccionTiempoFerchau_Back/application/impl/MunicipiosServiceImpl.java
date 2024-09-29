@@ -30,7 +30,7 @@ public class MunicipiosServiceImpl implements MunicipiosService {
     private final WebClient webClient;
 
     @Autowired
-    public MunicipiosServiceImpl (WebClient.Builder webClientBuilder, ConfigurationPrediccionTiempoMunicipios config) {
+    public MunicipiosServiceImpl(WebClient.Builder webClientBuilder, ConfigurationPrediccionTiempoMunicipios config) {
         this.configurationPrediccionTiempoMunicipios = config;
         this.webClient = webClientBuilder.baseUrl(config.getBaseurl())
                 .codecs(configurer -> configurer
@@ -50,6 +50,7 @@ public class MunicipiosServiceImpl implements MunicipiosService {
                 .bodyToMono(JsonNode.class) // Deserializa la respuesta a JsonNode
                 .map(jsonNode -> jsonNode.path("datos").asText()).block();
 
+        // Respuesta final del servicio.
         return this.webClient.get()
                 .uri(Objects.requireNonNull(urlDatosMunicipios))
                 .retrieve()
@@ -57,7 +58,8 @@ public class MunicipiosServiceImpl implements MunicipiosService {
                 .map(json -> {
                     try {
                         // Deserializar el JSON a una lista de mapas
-                        List<Map<String, String>> data = objectMapper.readValue(json, new TypeReference<>(){});
+                        List<Map<String, String>> data = objectMapper.readValue(json, new TypeReference<>() {
+                        });
 
                         // Crear una lista de objetos Municipio a partir de los resultados
                         List<MunicipioDto> municipios = new ArrayList<>();

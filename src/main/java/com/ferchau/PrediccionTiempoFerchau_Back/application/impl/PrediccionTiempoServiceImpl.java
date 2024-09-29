@@ -47,12 +47,13 @@ public class PrediccionTiempoServiceImpl implements PrediccionTiempoService {
 
     @Override
     public PrediccionTiempoDto getPrediccion(String codigoMunicipio, String unidadTemperatura) {
+        // Recogemos la primera peticion para extraer la url definitiva de los datos
         String urlDatosMunicipios = this.webClient.get()
                 .uri(this.configurationPrediccionTiempoMunicipios.getUrlPrediccioTiempo() + codigoMunicipio)
                 .retrieve()
-                .bodyToMono(JsonNode.class) // Deserializa la respuesta a JsonNode
+                .bodyToMono(JsonNode.class)
                 .map(jsonNode -> jsonNode.path("datos").asText()).block();
-
+        // Llamada a AEMET para obtener todas las predicciones por Municipio de toda la semana
         String response = this.webClient.get()
                 .uri(Objects.requireNonNull(urlDatosMunicipios))
                 .retrieve()

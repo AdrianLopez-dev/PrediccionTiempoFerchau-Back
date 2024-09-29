@@ -11,7 +11,7 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 public class ProbPrecipitacionDto {
 
-    private int probabilidad;
+    private int value;
 
     private String periodo;
 }
