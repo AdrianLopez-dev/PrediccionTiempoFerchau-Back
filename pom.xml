@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.ferchau</groupId>
     <artifactId>PrediccionTiempoFerchau-Back</artifactId>
-    <version>0.0.2-alpha2</version>
+    <version>0.0.2-alpha3</version>
     <name>PrediccionTiempoFerchau-Back</name>
     <description>Caso Práctico para entrevista FERCHAU</description>
     <url/>

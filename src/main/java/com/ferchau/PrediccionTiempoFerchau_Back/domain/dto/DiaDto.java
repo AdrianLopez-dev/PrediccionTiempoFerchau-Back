@@ -1,0 +1,22 @@
+package com.ferchau.PrediccionTiempoFerchau_Back.domain.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.validation.annotation.Validated;
+
+import java.util.List;
+
+@NoArgsConstructor
+@AllArgsConstructor
+@Data
+@Validated
+public class DiaDto {
+    private List<ProbPrecipitacionDto> probPrecipitacion;
+    private List<EstadoCieloDto> estadoCielo;
+    private List<VientoDto> viento;
+    private TemperaturaDto temperatura;
+    private SensTermicaDto sensTermica;
+    private HumedadRelativaDto humedadRelativa;
+    private String fecha;
+}
