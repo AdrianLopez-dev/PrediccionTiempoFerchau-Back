@@ -18,9 +18,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.IntStream;
 
 @Service
 public class PrediccionTiempoServiceImpl implements PrediccionTiempoService {
@@ -54,7 +54,7 @@ public class PrediccionTiempoServiceImpl implements PrediccionTiempoService {
                 .bodyToMono(JsonNode.class) // Deserializa la respuesta a JsonNode
                 .map(jsonNode -> jsonNode.path("datos").asText()).block();
 
-         String response = this.webClient.get()
+        String response = this.webClient.get()
                 .uri(Objects.requireNonNull(urlDatosMunicipios))
                 .retrieve()
                 .bodyToMono(String.class).block();
@@ -87,31 +87,19 @@ public class PrediccionTiempoServiceImpl implements PrediccionTiempoService {
                     JSONObject temperatura = dia.getJSONObject("temperatura");
                     double mediaTemperatura = (temperatura.getDouble("maxima") + temperatura.getDouble("minima")) / 2;
 
-                    if(unidadTemperatura.equals(Constants.UNIDAD_MEDIDA_TEMPERATURA_FARENHEIT)){
+                    if (unidadTemperatura.equals(Constants.UNIDAD_MEDIDA_TEMPERATURA_FARENHEIT)) {
                         // Convertimos la temperatura a Fahrenheit
-                        mediaTemperatura = (mediaTemperatura * 9/5) + 32;
+                        mediaTemperatura = (mediaTemperatura * 9 / 5) + 32;
                     }
 
                     // Procesamos probabilidad de precipitación
                     JSONArray probPrecipitacion = dia.getJSONArray("probPrecipitacion");
-                    List<ProbPrecipitacionDto> probPrecipitaciones = new ArrayList<>();
-
-                    for (int j = 0; j < probPrecipitacion.length(); j++) {
-                        JSONObject prob = probPrecipitacion.getJSONObject(j);
-                        String periodo = prob.getString("periodo");
-
-                        ProbPrecipitacionDto probNueva = new ProbPrecipitacionDto();
-                        probNueva.setProbabilidad(prob.getInt("value"));
-                        probNueva.setPeriodo(periodo);
-                        probPrecipitaciones.add(probNueva);
-
-                    }
 
                     // Creamos el objeto final
                     PrediccionTiempoDto resultadoFinal = new PrediccionTiempoDto();
                     resultadoFinal.setMediaTemperatura(mediaTemperatura);
                     resultadoFinal.setUnidadTemperatura(unidadTemperatura);
-                    resultadoFinal.setProbPrecipitacion(probPrecipitaciones);
+                    resultadoFinal.setProbPrecipitacion(getProbPrecipitacionesList(probPrecipitacion));
 
                     return resultadoFinal;
                 }
@@ -121,5 +109,26 @@ public class PrediccionTiempoServiceImpl implements PrediccionTiempoService {
         }
 
         return null;
+    }
+
+    private List<ProbPrecipitacionDto> getProbPrecipitacionesList(JSONArray probPrecipitacion) {
+        return IntStream.range(0, probPrecipitacion.length())
+                .mapToObj(obj -> {
+                    JSONObject prob;
+                    String periodo;
+                    ProbPrecipitacionDto probNueva = new ProbPrecipitacionDto();
+
+                    try {
+                        prob = probPrecipitacion.getJSONObject(obj);
+                        periodo = prob.getString("periodo");
+                        probNueva.setProbabilidad(prob.getInt("value"));
+                    } catch (JSONException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                    probNueva.setPeriodo(periodo);
+                    return probNueva;
+                }).toList();
+
     }
 }
