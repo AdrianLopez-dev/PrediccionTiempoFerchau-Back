@@ -10,4 +10,6 @@ import org.springframework.validation.annotation.Validated;
 @Data
 @Validated
 public class SensTermicaDatoDto {
+    private int value;
+    private int hora;
 }
