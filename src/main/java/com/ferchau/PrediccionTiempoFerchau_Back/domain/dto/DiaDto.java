@@ -18,5 +18,6 @@ public class DiaDto {
     private TemperaturaDto temperatura;
     private SensTermicaDto sensTermica;
     private HumedadRelativaDto humedadRelativa;
+    private int uvMax;
     private String fecha;
 }
