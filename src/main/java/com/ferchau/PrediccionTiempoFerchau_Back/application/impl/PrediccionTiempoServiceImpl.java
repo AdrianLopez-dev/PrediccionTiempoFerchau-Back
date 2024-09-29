@@ -1,7 +1,6 @@
 package com.ferchau.PrediccionTiempoFerchau_Back.application.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ferchau.PrediccionTiempoFerchau_Back.application.configuration.ConfigurationPrediccionTiempoMunicipios;
@@ -9,20 +8,18 @@ import com.ferchau.PrediccionTiempoFerchau_Back.application.i18n.Constants;
 import com.ferchau.PrediccionTiempoFerchau_Back.application.service.PrediccionTiempoService;
 import com.ferchau.PrediccionTiempoFerchau_Back.domain.dto.PrediccionTiempoDto;
 import com.ferchau.PrediccionTiempoFerchau_Back.domain.dto.ProbPrecipitacionDto;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 
-import java.lang.annotation.Documented;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 @Service
@@ -44,7 +41,7 @@ public class PrediccionTiempoServiceImpl implements PrediccionTiempoService {
                 .codecs(configurer -> configurer
                         .defaultCodecs()
                         .maxInMemorySize(memorySize))
-                .defaultHeader("Authorization", "Bearer " + config.getToken()) // API Key en el header
+                .defaultHeader("Authorization", "Bearer " + config.getToken())
                 .defaultHeader("Accept", "application/json")
                 .build();
     }
@@ -52,7 +49,7 @@ public class PrediccionTiempoServiceImpl implements PrediccionTiempoService {
     @Override
     public PrediccionTiempoDto getPrediccion(String codigoMunicipio, String unidadTemperatura) {
         String urlDatosMunicipios = this.webClient.get()
-                .uri("/opendata/api/prediccion/especifica/municipio/diaria/" + codigoMunicipio)
+                .uri(this.configurationPrediccionTiempoMunicipios.getUrlPrediccioTiempo() + codigoMunicipio)
                 .retrieve()
                 .bodyToMono(JsonNode.class) // Deserializa la respuesta a JsonNode
                 .map(jsonNode -> jsonNode.path("datos").asText()).block();
@@ -119,7 +116,6 @@ public class PrediccionTiempoServiceImpl implements PrediccionTiempoService {
                     return resultadoFinal;
                 }
             }
-
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }

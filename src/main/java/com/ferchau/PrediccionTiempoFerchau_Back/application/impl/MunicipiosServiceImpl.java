@@ -10,7 +10,6 @@ import com.ferchau.PrediccionTiempoFerchau_Back.domain.dto.MunicipioDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -22,13 +21,13 @@ import java.util.Objects;
 public class MunicipiosServiceImpl implements MunicipiosService {
 
     @Autowired
-    private ConfigurationPrediccionTiempoMunicipios configurationPrediccionTiempoMunicipios;
+    private final ConfigurationPrediccionTiempoMunicipios configurationPrediccionTiempoMunicipios;
 
     @Autowired
     private ObjectMapper objectMapper;
 
     private static final int memorySize = 1024 * 1024 * 10;
-    private WebClient webClient;
+    private final WebClient webClient;
 
     @Autowired
     public MunicipiosServiceImpl (WebClient.Builder webClientBuilder, ConfigurationPrediccionTiempoMunicipios config) {
@@ -37,7 +36,7 @@ public class MunicipiosServiceImpl implements MunicipiosService {
                 .codecs(configurer -> configurer
                         .defaultCodecs()
                         .maxInMemorySize(memorySize))
-                .defaultHeader("Authorization", "Bearer " + config.getToken()) // API Key en el header
+                .defaultHeader("Authorization", "Bearer " + config.getToken())
                 .defaultHeader("Accept", "application/json")
                 .build();
     }
@@ -46,7 +45,7 @@ public class MunicipiosServiceImpl implements MunicipiosService {
     public List<MunicipioDto> getAllMunicipios() {
         // Recogemos la primera peticion para extraer la url definitiva de los datos
         String urlDatosMunicipios = this.webClient.get()
-                .uri("/opendata/api/maestro/municipios")
+                .uri(configurationPrediccionTiempoMunicipios.getUrlMunicipios())
                 .retrieve()
                 .bodyToMono(JsonNode.class) // Deserializa la respuesta a JsonNode
                 .map(jsonNode -> jsonNode.path("datos").asText()).block();
@@ -58,7 +57,7 @@ public class MunicipiosServiceImpl implements MunicipiosService {
                 .map(json -> {
                     try {
                         // Deserializar el JSON a una lista de mapas
-                        List<Map<String, String>> data = objectMapper.readValue(json, new TypeReference<List<Map<String, String>>>() {});
+                        List<Map<String, String>> data = objectMapper.readValue(json, new TypeReference<>(){});
 
                         // Crear una lista de objetos Municipio a partir de los resultados
                         List<MunicipioDto> municipios = new ArrayList<>();
