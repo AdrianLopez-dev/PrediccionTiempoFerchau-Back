@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.ferchau</groupId>
     <artifactId>PrediccionTiempoFerchau-Back</artifactId>
-    <version>0.0.2-alpha6</version>
+    <version>0.0.2-alpha7</version>
     <name>PrediccionTiempoFerchau-Back</name>
     <description>Caso Práctico para entrevista FERCHAU</description>
     <url/>
@@ -114,6 +114,11 @@
             <artifactId>android-json</artifactId>
             <version>0.0.20131108.vaadin1</version>
             <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.swagger.core.v3</groupId>
+            <artifactId>swagger-models-jakarta</artifactId>
+            <version>2.2.15</version>
         </dependency>
 
     </dependencies>
