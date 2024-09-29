@@ -12,7 +12,15 @@ import org.springframework.validation.annotation.Validated;
 @Data
 @Validated
 public class TemperaturaDto {
-    private int maxima;
-    private int minima;
+    private double maxima;
+    private double minima;
     private List<TemperaturaDatoDto> dato;
+
+    public double getCelsius() {
+        return (this.maxima + this.minima) / 2;
+    }
+
+    public double getFarenheit() {
+        return (((this.maxima + this.minima) / 2) * 9 / 5) + 32;
+    }
 }

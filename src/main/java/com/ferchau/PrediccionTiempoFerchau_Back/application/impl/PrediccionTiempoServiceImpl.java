@@ -1,17 +1,15 @@
 package com.ferchau.PrediccionTiempoFerchau_Back.application.impl;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ferchau.PrediccionTiempoFerchau_Back.application.configuration.ConfigurationPrediccionTiempoMunicipios;
 import com.ferchau.PrediccionTiempoFerchau_Back.application.i18n.Constants;
 import com.ferchau.PrediccionTiempoFerchau_Back.application.service.PrediccionTiempoService;
-import com.ferchau.PrediccionTiempoFerchau_Back.domain.dto.PrediccionTiempoDto;
-import com.ferchau.PrediccionTiempoFerchau_Back.domain.dto.ProbPrecipitacionDto;
+import com.ferchau.PrediccionTiempoFerchau_Back.domain.dto.*;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -20,7 +18,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.IntStream;
 
 @Service
 public class PrediccionTiempoServiceImpl implements PrediccionTiempoService {
@@ -34,6 +31,8 @@ public class PrediccionTiempoServiceImpl implements PrediccionTiempoService {
     private ObjectMapper objectMapper;
 
     private static final int memorySize = 1024 * 1024 * 10;
+
+    private final String fechaManana = LocalDate.now().plusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T00:00:00";
 
     public PrediccionTiempoServiceImpl(WebClient.Builder webClientBuilder, ConfigurationPrediccionTiempoMunicipios config) {
         this.configurationPrediccionTiempoMunicipios = config;
@@ -59,76 +58,34 @@ public class PrediccionTiempoServiceImpl implements PrediccionTiempoService {
                 .retrieve()
                 .bodyToMono(String.class).block();
 
-        System.out.println(response);
-        System.out.println(urlDatosMunicipios);
-
-        // Parseamos la respuesta JSON
         try {
-            JSONArray responseArray = new JSONArray(response);
+            // Recogemos toda la informacion de la prediccion del dia de mañana
+            List<PrediccionAEMETDto> prediccionesAEMET = objectMapper.readValue(response, new TypeReference<>() {
+            });
+            PrediccionAEMETDto prediccionAEMET = prediccionesAEMET.getFirst();
+            PrediccionDto prediccionDto = prediccionAEMET.getPrediccion();
+            List<DiaDto> listDias = prediccionDto.getDia();
 
-            // Accedemos al primer objeto del array, asumiendo que siempre hay al menos uno
-            JSONObject responseObject = responseArray.getJSONObject(0);
-
-            // Accedemos al objeto "prediccion"
-            JSONObject prediccion = responseObject.getJSONObject("prediccion");
-
-            // Accedemos al array "dia"
-            JSONArray dias = prediccion.getJSONArray("dia");
-
-            // Fecha de mañana en el formato adecuado
-            String fechaManana = LocalDate.now().plusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T00:00:00";
-
-            for (int i = 0; i < dias.length(); i++) {
-                JSONObject dia = dias.getJSONObject(i);
-                String fecha = dia.getString("fecha"); // Usamos la fecha completa
-
-                if (fecha.equals(fechaManana)) {
-                    // Procesamos la temperatura
-                    JSONObject temperatura = dia.getJSONObject("temperatura");
-                    double mediaTemperatura = (temperatura.getDouble("maxima") + temperatura.getDouble("minima")) / 2;
-
-                    if (unidadTemperatura.equals(Constants.UNIDAD_MEDIDA_TEMPERATURA_FARENHEIT)) {
-                        // Convertimos la temperatura a Fahrenheit
-                        mediaTemperatura = (mediaTemperatura * 9 / 5) + 32;
-                    }
-
-                    // Procesamos probabilidad de precipitación
-                    JSONArray probPrecipitacion = dia.getJSONArray("probPrecipitacion");
-
+            // Comprobamos en la lista de dias, cual es dia que corresponde con el dia de mañana para extraer la información necesaria
+            for (DiaDto dia : listDias) {
+                if (dia.getFecha().equals(fechaManana)) {
                     // Creamos el objeto final
                     PrediccionTiempoDto resultadoFinal = new PrediccionTiempoDto();
-                    resultadoFinal.setMediaTemperatura(mediaTemperatura);
+                    resultadoFinal.setMediaTemperatura(unidadTemperatura.equals(Constants.UNIDAD_MEDIDA_TEMPERATURA_FARENHEIT) ?
+                            dia.getTemperatura().getFarenheit() : dia.getTemperatura().getCelsius());
                     resultadoFinal.setUnidadTemperatura(unidadTemperatura);
-                    resultadoFinal.setProbPrecipitacion(getProbPrecipitacionesList(probPrecipitacion));
+                    resultadoFinal.setProbPrecipitacion(dia.getProbPrecipitacion());
 
                     return resultadoFinal;
+
+
                 }
             }
-        } catch (JSONException e) {
+
+        } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
-
         return null;
     }
 
-    private List<ProbPrecipitacionDto> getProbPrecipitacionesList(JSONArray probPrecipitacion) {
-        return IntStream.range(0, probPrecipitacion.length())
-                .mapToObj(obj -> {
-                    JSONObject prob;
-                    String periodo;
-                    ProbPrecipitacionDto probNueva = new ProbPrecipitacionDto();
-
-                    try {
-                        prob = probPrecipitacion.getJSONObject(obj);
-                        periodo = prob.getString("periodo");
-                        probNueva.setProbabilidad(prob.getInt("value"));
-                    } catch (JSONException e) {
-                        throw new RuntimeException(e);
-                    }
-
-                    probNueva.setPeriodo(periodo);
-                    return probNueva;
-                }).toList();
-
-    }
 }
