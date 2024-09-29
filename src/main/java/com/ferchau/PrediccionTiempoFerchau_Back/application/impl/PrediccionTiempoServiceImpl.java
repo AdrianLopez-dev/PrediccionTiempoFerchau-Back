@@ -69,7 +69,7 @@ public class PrediccionTiempoServiceImpl implements PrediccionTiempoService {
             // Comprobamos en la lista de dias, cual es dia que corresponde con el dia de mañana para extraer la información necesaria
             for (DiaDto dia : listDias) {
                 if (dia.getFecha().equals(fechaManana)) {
-                    // Creamos el objeto final
+                    // Creamos el objeto final para la respuesta
                     PrediccionTiempoDto resultadoFinal = new PrediccionTiempoDto();
                     resultadoFinal.setMediaTemperatura(unidadTemperatura.equals(Constants.UNIDAD_MEDIDA_TEMPERATURA_FARENHEIT) ?
                             dia.getTemperatura().getFarenheit() : dia.getTemperatura().getCelsius());
@@ -77,8 +77,6 @@ public class PrediccionTiempoServiceImpl implements PrediccionTiempoService {
                     resultadoFinal.setProbPrecipitacion(dia.getProbPrecipitacion());
 
                     return resultadoFinal;
-
-
                 }
             }
 
